@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>คลังปัญหาภายในโรงเรียน | สภานักเรียนโรงเรียนร้องกวางอนุสรณ์</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="topbar"></div>
+  <header class="header" id="site-header" data-group="admin" data-active="intex6.2"></header>
+
+  <main class="page wide">
+    <h1 class="page-title">ปัญหาภายในโรงเรียน</h1>
+    <p class="page-sub">รวมรายการปัญหาที่นักเรียนแจ้งเข้ามาผ่านหน้า "แจ้งปัญหา"</p>
+
+    <div class="table-toolbar"><h3>รายการทั้งหมด</h3></div>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>วันเดือนปี</th><th>เวลา</th><th>ปัญหา</th><th>สถานที่</th></tr></thead>
+        <tbody id="tbody"><tr><td colspan="4" class="center">กำลังโหลด...</td></tr></tbody>
+      </table>
+    </div>
+
+    <div class="chart-box">
+      <h3>แผนภูมิแสดงความสัมพันธ์ระหว่างปัญหากับจำนวนของปัญหานั้นๆ</h3>
+      <canvas id="problemChart"></canvas>
+    </div>
+  </main>
+
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4"></script>
+  <script src="/js/nav.js"></script>
+  <script src="/js/api.js"></script>
+  <script>
+    requireAdmin();
+    async function load() {
+      const { body } = await getJson('/api/problems');
+      const rows = body.rows || [];
+      const tbody = document.getElementById('tbody');
+      tbody.innerHTML = rows.length ? rows.map(r => {
+        const dt = new Date(r.created_at);
+        return `<tr>
+          <td>${dt.toLocaleDateString('th-TH')}</td><td>${dt.toLocaleTimeString('th-TH')}</td>
+          <td>${r.problem}</td><td>${r.location}</td>
+        </tr>`;
+      }).join('') : '<tr><td colspan="4" class="center">ยังไม่มีข้อมูล</td></tr>';
+
+      const counts = {};
+      rows.forEach(r => counts[r.problem] = (counts[r.problem] || 0) + 1);
+
+      new Chart(document.getElementById('problemChart'), {
+        type: 'bar',
+        data: {
+          labels: Object.keys(counts),
+          datasets: [{ label: 'จำนวนครั้งที่พบ', data: Object.values(counts), backgroundColor: '#6B3F87' }],
+        },
+        options: { responsive: true, scales: { y: { beginAtZero: true, ticks: { stepSize: 1 } } } },
+      });
+    }
+    load();
+  </script>
+</body>
+</html>

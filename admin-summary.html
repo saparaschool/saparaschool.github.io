@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>สรุปภาพรวม | สภานักเรียนโรงเรียนร้องกวางอนุสรณ์</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="topbar"></div>
+  <header class="header no-print" id="site-header" data-group="admin" data-active="intex6.5"></header>
+
+  <main class="page wide" id="printArea">
+    <div class="table-toolbar">
+      <div>
+        <h1 class="page-title" style="margin-bottom:2px;">สรุปภาพรวม</h1>
+        <p class="page-sub" style="margin:0;">ภาพรวมข้อมูลทั้งหมดของสภานักเรียนโรงเรียนร้องกวางอนุสรณ์</p>
+      </div>
+      <button class="btn gold no-print" id="pdfBtn" type="button">ดาวน์โหลดเป็น PDF (A4)</button>
+    </div>
+
+    <div class="summary-grid" id="summaryGrid">
+      <div class="summary-card">
+        <div class="label">ปัญหาที่พบเยอะที่สุด</div>
+        <div class="value" id="v_problem">-</div>
+        <div class="bar-track"><div class="bar-fill" id="b_problem" style="width:0%"></div></div>
+        <div class="bar-pct" id="p_problem"></div>
+      </div>
+      <div class="summary-card">
+        <div class="label">กิจกรรมที่ใช้งบน้อยที่สุด</div>
+        <div class="value" id="v_activity">-</div>
+        <div class="bar-track"><div class="bar-fill" id="b_activity" style="width:0%"></div></div>
+        <div class="bar-pct" id="p_activity"></div>
+      </div>
+      <div class="summary-card">
+        <div class="label">สภาพจิตใจคนในโรงเรียนโดยเฉลี่ย</div>
+        <div class="value" id="v_mental">-</div>
+        <div class="bar-track"><div class="bar-fill" id="b_mental" style="width:0%"></div></div>
+        <div class="bar-pct" id="p_mental"></div>
+      </div>
+      <div class="summary-card">
+        <div class="label">กิจกรรมที่นักเรียนชอบมากที่สุด</div>
+        <div class="value" id="v_vote">-</div>
+        <div class="bar-track"><div class="bar-fill" id="b_vote" style="width:0%"></div></div>
+        <div class="bar-pct" id="p_vote"></div>
+      </div>
+    </div>
+  </main>
+
+  <script src="/js/nav.js"></script>
+  <script src="/js/api.js"></script>
+  <script>
+    requireAdmin();
+
+    function fillCard(prefix, item, unitSuffix) {
+      document.getElementById('v_' + prefix).textContent = item ? item.name : 'ยังไม่มีข้อมูล';
+      const percent = item ? (item.percent != null ? item.percent : null) : null;
+      if (item && percent != null) {
+        document.getElementById('b_' + prefix).style.width = percent + '%';
+        document.getElementById('p_' + prefix).textContent = percent + '%';
+      } else if (item && item.amount != null) {
+        document.getElementById('b_' + prefix).style.width = '100%';
+        document.getElementById('p_' + prefix).textContent = Number(item.amount).toLocaleString('th-TH') + ' บาท';
+      } else {
+        document.getElementById('b_' + prefix).style.width = '0%';
+        document.getElementById('p_' + prefix).textContent = '';
+      }
+    }
+
+    async function load() {
+      const { body } = await getJson('/api/summary');
+      fillCard('problem', body.topProblem);
+      fillCard('activity', body.cheapestActivity);
+      fillCard('mental', body.topMentalLevel);
+      fillCard('vote', body.topActivity);
+    }
+    load();
+
+    document.getElementById('pdfBtn').addEventListener('click', () => window.print());
+  </script>
+</body>
+</html>

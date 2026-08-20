@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>แจ้งปัญหาภายในโรงเรียน | สภานักเรียนโรงเรียนร้องกวางอนุสรณ์</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="topbar"></div>
+  <header class="header" id="site-header" data-group="main" data-active="intex4"></header>
+
+  <main class="page">
+    <h1 class="page-title">ปัญหาที่พบภายในโรงเรียน</h1>
+    <p class="page-sub">แจ้งปัญหาที่พบเพื่อให้สภานักเรียนนำไปประสานงานแก้ไขต่อไป (ไม่ต้องระบุตัวตน)</p>
+
+    <form class="card" id="problemForm">
+      <div class="field">
+        <label>ปัญหาที่พบภายในโรงเรียน</label>
+        <select id="problem" required>
+          <option value="" disabled selected>-- เลือกปัญหาที่พบ --</option>
+          <option>ห้องน้ำไม่สะอาด</option>
+          <option>น้ำดื่มไม่เพียงพอ</option>
+          <option>แสงสว่างในห้องเรียนไม่เพียงพอ</option>
+          <option>พัดลม/แอร์ชำรุด</option>
+          <option>โต๊ะเก้าอี้ชำรุด</option>
+          <option>ที่จอดรถไม่เพียงพอ</option>
+          <option>อินเทอร์เน็ต/Wi-Fi ใช้งานไม่ได้</option>
+          <option>ความปลอดภัยในโรงเรียน</option>
+          <option>อื่น ๆ</option>
+        </select>
+      </div>
+
+      <div class="field">
+        <label>สถานที่</label>
+        <select id="location" required>
+          <option value="" disabled selected>-- เลือกสถานที่ --</option>
+          <option>อาคาร 1</option>
+          <option>อาคาร 2</option>
+          <option>อาคาร 3</option>
+          <option>โรงอาหาร</option>
+          <option>สนามกีฬา</option>
+          <option>ห้องสมุด</option>
+          <option>ห้องน้ำนักเรียน</option>
+          <option>บริเวณลานหน้าเสาธง</option>
+          <option>ที่จอดรถ</option>
+          <option>อื่น ๆ</option>
+        </select>
+      </div>
+
+      <button type="submit" class="btn block">ส่งแจ้งปัญหา</button>
+      <p class="error-text" id="err" style="display:none;"></p>
+    </form>
+  </main>
+
+  <script src="/js/nav.js"></script>
+  <script src="/js/api.js"></script>
+  <script>
+    document.getElementById('problemForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const errEl = document.getElementById('err');
+      errEl.style.display = 'none';
+      const { ok, body } = await postJson('/api/problem', {
+        problem: document.getElementById('problem').value,
+        location: document.getElementById('location').value,
+      });
+      if (ok) window.location.href = '/vote-success.html';
+      else { errEl.textContent = body.error || 'เกิดข้อผิดพลาด กรุณาลองใหม่'; errEl.style.display = 'block'; }
+    });
+  </script>
+</body>
+</html>

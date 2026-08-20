@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ตารางงบประมาณ | สภานักเรียนโรงเรียนร้องกวางอนุสรณ์</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="topbar"></div>
+  <header class="header" id="site-header" data-group="admin" data-active="intex6.1"></header>
+
+  <main class="page wide">
+    <h1 class="page-title">ตารางงบประมาณ ปีการศึกษา 2569</h1>
+    <p class="page-sub">บันทึกและติดตามการใช้งบประมาณของแต่ละกิจกรรม</p>
+
+    <form class="card" id="addForm">
+      <div class="row3">
+        <div class="field"><label>วันเดือนปี</label><input type="date" id="f_date" required></div>
+        <div class="field"><label>เวลา</label><input type="time" id="f_time" required></div>
+        <div class="field"><label>รายการ</label><input type="text" id="f_item" placeholder="เช่น กีฬาสี 2569" required></div>
+      </div>
+      <div class="row3">
+        <div class="field"><label>งบทั้งหมด (บาท)</label><input type="number" id="f_total" min="0" step="0.01" required></div>
+        <div class="field"><label>จ่ายจริง (บาท)</label><input type="number" id="f_paid" min="0" step="0.01" required></div>
+        <div class="field"><label>ชื่อผู้บันทึก</label><input type="text" id="f_recorder"></div>
+      </div>
+      <div class="field"><label>หมายเหตุ</label><input type="text" id="f_note"></div>
+      <button type="submit" class="btn">+ เพิ่มแถวข้อมูล</button>
+      <p class="error-text" id="err" style="display:none;"></p>
+    </form>
+
+    <div class="table-toolbar"><h3>รายการงบประมาณทั้งหมด</h3></div>
+    <div class="table-wrap">
+      <table>
+        <thead><tr>
+          <th>วันเดือนปี</th><th>เวลา</th><th>รายการ</th><th>งบทั้งหมด</th><th>จ่ายจริง</th><th>คงเหลือ</th><th>ผู้บันทึก</th><th>หมายเหตุ</th>
+        </tr></thead>
+        <tbody id="tbody"><tr><td colspan="8" class="center">กำลังโหลด...</td></tr></tbody>
+      </table>
+    </div>
+
+    <div class="chart-box">
+      <h3>แผนภูมิแสดงความสัมพันธ์ระหว่างกิจกรรมกับงบประมาณ</h3>
+      <canvas id="budgetChart"></canvas>
+    </div>
+  </main>
+
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4"></script>
+  <script src="/js/nav.js"></script>
+  <script src="/js/api.js"></script>
+  <script>
+    requireAdmin();
+    let chart;
+
+    function fmt(n){ return Number(n).toLocaleString('th-TH', {minimumFractionDigits:0, maximumFractionDigits:2}); }
+
+    async function loadBudget() {
+      const { body } = await getJson('/api/budget');
+      const rows = body.rows || [];
+      const tbody = document.getElementById('tbody');
+      tbody.innerHTML = rows.length ? rows.map(r => `
+        <tr>
+          <td>${r.entry_date}</td><td>${r.entry_time}</td><td>${r.item}</td>
+          <td>${fmt(r.budget_total)}</td><td>${fmt(r.actual_paid)}</td><td>${fmt(r.remaining)}</td>
+          <td>${r.recorder || '-'}</td><td>${r.note || '-'}</td>
+        </tr>
+      `).join('') : '<tr><td colspan="8" class="center">ยังไม่มีข้อมูล</td></tr>';
+
+      const labels = rows.map(r => r.item);
+      const totals = rows.map(r => r.budget_total);
+      const paid = rows.map(r => r.actual_paid);
+      const remaining = rows.map(r => r.remaining);
+
+      const ctx = document.getElementById('budgetChart');
+      if (chart) chart.destroy();
+      chart = new Chart(ctx, {
+        type: 'bar',
+        data: {
+          labels,
+          datasets: [
+            { label: 'งบทั้งหมด', data: totals, backgroundColor: '#6B3F87' },
+            { label: 'จ่ายจริง', data: paid, backgroundColor: '#C9A24B' },
+            { label: 'คงเหลือ', data: remaining, backgroundColor: '#3F7A55' },
+          ],
+        },
+        options: { responsive: true, scales: { y: { beginAtZero: true } } },
+      });
+    }
+
+    document.getElementById('addForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const errEl = document.getElementById('err');
+      errEl.style.display = 'none';
+      const { ok, body } = await postJson('/api/budget', {
+        date: document.getElementById('f_date').value,
+        time: document.getElementById('f_time').value,
+        item: document.getElementById('f_item').value,
+        budgetTotal: document.getElementById('f_total').value,
+        actualPaid: document.getElementById('f_paid').value,
+        recorder: document.getElementById('f_recorder').value,
+        note: document.getElementById('f_note').value,
+      });
+      if (ok) { e.target.reset(); loadBudget(); }
+      else { errEl.textContent = body.error || 'เกิดข้อผิดพลาด'; errEl.style.display = 'block'; }
+    });
+
+    loadBudget();
+  </script>
+</body>
+</html>

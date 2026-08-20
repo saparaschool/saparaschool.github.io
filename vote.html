@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>โหวตกิจกรรมที่ชอบ | สภานักเรียนโรงเรียนร้องกวางอนุสรณ์</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="topbar"></div>
+  <header class="header" id="site-header" data-group="main" data-active="intex2"></header>
+
+  <main class="page">
+    <h1 class="page-title">โหวตกิจกรรมที่ชอบ</h1>
+    <p class="page-sub">ร่วมโหวตกิจกรรมที่นักเรียนชื่นชอบ เพื่อให้สภานักเรียนนำไปจัดกิจกรรมในโอกาสต่อไป</p>
+
+    <form class="card" id="voteForm">
+      <div class="row3">
+        <div class="field"><label>ชื่อ-นามสกุล</label><input type="text" id="name" placeholder="เช่น ด.ช.สมชาย ใจดี"></div>
+        <div class="field"><label>เลขที่</label><input type="text" id="no" placeholder="เช่น 12"></div>
+        <div class="field"><label>ชั้น</label><input type="text" id="class" placeholder="เช่น ม.3/1"></div>
+      </div>
+      <div class="field"><label>รหัสนักเรียน</label><input type="text" id="studentId" placeholder="เช่น 12345"></div>
+
+      <div class="field">
+        <label>กิจกรรม</label>
+        <select id="activity" required>
+          <option value="" disabled selected>-- เลือกกิจกรรมที่ชื่นชอบ --</option>
+          <option>กีฬาสี</option>
+          <option>ดนตรีสด / ดนตรีในสวน</option>
+          <option>ค่ายวิชาการ</option>
+          <option>ทัศนศึกษานอกสถานที่</option>
+          <option>ประกวดร้องเพลง/เต้น</option>
+          <option>กิจกรรมจิตอาสา</option>
+          <option>วันสัปดาห์วิทยาศาสตร์</option>
+          <option>อื่น ๆ (ระบุในข้อเสนอแนะ)</option>
+        </select>
+      </div>
+
+      <div class="field">
+        <label>ความชอบต่อกิจกรรมนี้</label>
+        <div class="likert" id="satisfaction">
+          <label><input type="radio" name="sat" value="1"><span>1<br>น้อยที่สุด</span></label>
+          <label><input type="radio" name="sat" value="2"><span>2<br>น้อย</span></label>
+          <label><input type="radio" name="sat" value="3"><span>3<br>ปานกลาง</span></label>
+          <label><input type="radio" name="sat" value="4"><span>4<br>มาก</span></label>
+          <label><input type="radio" name="sat" value="5"><span>5<br>มากที่สุด</span></label>
+        </div>
+      </div>
+
+      <div class="field">
+        <label>ข้อเสนอแนะ</label>
+        <textarea id="suggestion" placeholder="อยากให้จัดกิจกรรมแบบไหนเพิ่มเติม..."></textarea>
+      </div>
+
+      <button type="submit" class="btn block">ส่งแบบโหวต</button>
+      <p class="error-text" id="err" style="display:none;"></p>
+    </form>
+  </main>
+
+  <script src="/js/nav.js"></script>
+  <script src="/js/api.js"></script>
+  <script>
+    document.getElementById('voteForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const errEl = document.getElementById('err');
+      errEl.style.display = 'none';
+      const satEl = document.querySelector('input[name=sat]:checked');
+      if (!satEl) { errEl.textContent = 'กรุณาเลือกระดับความชอบ'; errEl.style.display = 'block'; return; }
+
+      const { ok, body } = await postJson('/api/vote', {
+        name: document.getElementById('name').value,
+        no: document.getElementById('no').value,
+        class: document.getElementById('class').value,
+        studentId: document.getElementById('studentId').value,
+        activity: document.getElementById('activity').value,
+        satisfaction: satEl.value,
+        suggestion: document.getElementById('suggestion').value,
+      });
+      if (ok) window.location.href = '/vote-success.html';
+      else { errEl.textContent = body.error || 'เกิดข้อผิดพลาด กรุณาลองใหม่'; errEl.style.display = 'block'; }
+    });
+  </script>
+</body>
+</html>

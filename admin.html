@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>หน้าแอดมิน | สภานักเรียนโรงเรียนร้องกวางอนุสรณ์</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="topbar"></div>
+  <header class="header" id="site-header" data-group="admin" data-active="intex1"></header>
+
+  <main class="deer-hero">
+    <img src="/img/deer-silhouette.svg" class="silhouette s1" alt="">
+    <img src="/img/deer-silhouette.svg" class="silhouette s2" alt="">
+    <div class="ground"></div>
+    <div class="hero-card">
+      <div class="eyebrow">Admin Dashboard</div>
+      <h1>ยินดีต้อนรับสู่โหมดแอดมิน</h1>
+      <p>จัดการงบประมาณ ดูข้อมูลปัญหาภายในโรงเรียน ผลแบบประเมินสภาพจิตใจ และผลโหวตกิจกรรม ทั้งหมดในที่เดียว</p>
+      <div class="hero-links">
+        <a href="/admin-budget.html">งบประมาณ</a>
+        <a href="/admin-problems.html">คลังปัญหา</a>
+        <a href="/admin-survey.html">คลังแบบประเมิน</a>
+        <a href="/admin-votes.html">ผลโหวต</a>
+        <a href="/admin-summary.html" class="secondary">สรุปภาพรวม</a>
+      </div>
+      <p class="mt"><button class="btn outline" id="logoutBtn" type="button">ออกจากระบบ</button></p>
+    </div>
+  </main>
+
+  <script src="/js/nav.js"></script>
+  <script src="/js/api.js"></script>
+  <script>
+    requireAdmin();
+    document.getElementById('logoutBtn').addEventListener('click', async () => {
+      await postJson('/api/admin/logout', {});
+      window.location.href = '/index.html';
+    });
+  </script>
+</body>
+</html>

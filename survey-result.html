@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ผลการประเมิน | สภานักเรียนโรงเรียนร้องกวางอนุสรณ์</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="topbar"></div>
+  <header class="header" id="site-header" data-group="main" data-active="intex3"></header>
+
+  <main class="page">
+    <div class="card status-card">
+      <img src="/img/check-success.svg" class="status-icon" alt="สำเร็จ">
+      <h2>ส่งสำเร็จ</h2>
+      <p>ผลการประเมินสภาพจิตใจของนักเรียน</p>
+      <div id="levelBadge"></div>
+      <div class="advice-box">
+        <strong>คำแนะนำ</strong>
+        <p id="adviceText" style="margin:8px 0 0;"></p>
+      </div>
+      <a href="/index.html" class="btn mt">กลับหน้าหลัก</a>
+    </div>
+  </main>
+
+  <script src="/js/nav.js"></script>
+  <script>
+    const raw = sessionStorage.getItem('surveyResult');
+    const result = raw ? JSON.parse(raw) : null;
+    if (result) {
+      document.getElementById('levelBadge').innerHTML =
+        `<span class="level-badge level-${result.level}">ระดับ ${result.level} — ${result.label}</span>`;
+      document.getElementById('adviceText').textContent = result.advice;
+    } else {
+      document.getElementById('levelBadge').innerHTML = '';
+      document.getElementById('adviceText').textContent = 'ไม่พบผลการประเมิน กรุณาทำแบบประเมินอีกครั้ง';
+    }
+  </script>
+</body>
+</html>

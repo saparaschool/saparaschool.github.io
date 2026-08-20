@@ -1,0 +1,13 @@
+{
+  "name": "rongkwang-student-council",
+  "version": "1.0.0",
+  "description": "เว็บไซต์สภานักเรียนโรงเรียนร้องกวางอนุสรณ์ (Node.js + SQLite ในตัว ไม่ต้องติดตั้งแพ็กเกจเพิ่ม)",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "engines": {
+    "node": ">=22.5.0"
+  },
+  "license": "UNLICENSED"
+}

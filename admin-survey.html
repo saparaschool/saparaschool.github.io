@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>คลังผลแบบประเมินสภาพจิตใจ | สภานักเรียนโรงเรียนร้องกวางอนุสรณ์</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="topbar"></div>
+  <header class="header" id="site-header" data-group="admin" data-active="intex6.3"></header>
+
+  <main class="page wide">
+    <h1 class="page-title">ผลแบบสอบถามเกี่ยวกับสภาพจิตใจของนักเรียน</h1>
+    <p class="page-sub">ข้อมูลนี้เป็นข้อมูลอ่อนไหว โปรดใช้เพื่อการดูแลช่วยเหลือนักเรียนเท่านั้น และเก็บเป็นความลับ</p>
+
+    <div class="table-toolbar"><h3>รายการทั้งหมด</h3></div>
+    <div class="table-wrap">
+      <table>
+        <thead><tr>
+          <th>รหัสนักเรียน</th><th>ชื่อ-นามสกุล</th><th>ชั้น</th><th>เลขที่</th><th>วันเดือนปี</th><th>เวลา</th><th>ผลการประเมิน</th>
+        </tr></thead>
+        <tbody id="tbody"><tr><td colspan="7" class="center">กำลังโหลด...</td></tr></tbody>
+      </table>
+    </div>
+
+    <div class="chart-box">
+      <h3>ความสัมพันธ์ระหว่างระดับสภาพจิตใจของนักเรียนกับจำนวนคน</h3>
+      <canvas id="surveyChart"></canvas>
+    </div>
+  </main>
+
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4"></script>
+  <script src="/js/nav.js"></script>
+  <script src="/js/api.js"></script>
+  <script>
+    requireAdmin();
+    const levelLabels = {1:'สบายใจดี',2:'ดี',3:'ปานกลาง',4:'ควรเฝ้าระวัง',5:'ควรได้รับการดูแลเป็นพิเศษ'};
+
+    async function load() {
+      const { body } = await getJson('/api/surveys');
+      const rows = body.rows || [];
+      const tbody = document.getElementById('tbody');
+      tbody.innerHTML = rows.length ? rows.map(r => {
+        const dt = new Date(r.created_at);
+        return `<tr>
+          <td>${r.student_id || '-'}</td><td>${r.name || '-'}</td><td>${r.class || '-'}</td><td>${r.no || '-'}</td>
+          <td>${dt.toLocaleDateString('th-TH')}</td><td>${dt.toLocaleTimeString('th-TH')}</td>
+          <td><span class="level-badge level-${r.level}">${levelLabels[r.level]}</span></td>
+        </tr>`;
+      }).join('') : '<tr><td colspan="7" class="center">ยังไม่มีข้อมูล</td></tr>';
+
+      const counts = {1:0,2:0,3:0,4:0,5:0};
+      rows.forEach(r => counts[r.level] = (counts[r.level] || 0) + 1);
+
+      new Chart(document.getElementById('surveyChart'), {
+        type: 'bar',
+        data: {
+          labels: Object.values(levelLabels),
+          datasets: [{ label: 'จำนวนคน', data: Object.values(counts), backgroundColor: ['#3F7A55','#5C8A3A','#C98A2E','#C4652F','#B84A3E'] }],
+        },
+        options: { responsive: true, scales: { y: { beginAtZero: true, ticks: { stepSize: 1 } } } },
+      });
+    }
+    load();
+  </script>
+</body>
+</html>

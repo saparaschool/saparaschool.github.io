@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>แบบประเมินสภาพจิตใจ | สภานักเรียนโรงเรียนร้องกวางอนุสรณ์</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="topbar"></div>
+  <header class="header" id="site-header" data-group="main" data-active="intex3"></header>
+
+  <main class="page">
+    <h1 class="page-title">แบบประเมินสภาพจิตใจ</h1>
+    <p class="page-sub">แบบสอบถามนี้เป็นแบบประเมินเบื้องต้นเพื่อให้สภานักเรียนเข้าใจสภาพจิตใจของเพื่อน ๆ ในโรงเรียน
+    ไม่ใช่เครื่องมือวินิจฉัยทางการแพทย์ กรุณาตอบตามความรู้สึกจริงของนักเรียน คำตอบของนักเรียนจะถูกเก็บเป็นความลับ</p>
+
+    <form class="card" id="infoForm">
+      <div class="row3">
+        <div class="field"><label>ชื่อ-นามสกุล</label><input type="text" id="name"></div>
+        <div class="field"><label>เลขที่</label><input type="text" id="no"></div>
+        <div class="field"><label>ชั้น</label><input type="text" id="class"></div>
+      </div>
+      <div class="field"><label>รหัสนักเรียน</label><input type="text" id="studentId"></div>
+    </form>
+
+    <form class="card" id="surveyForm">
+      <div id="questionList">กำลังโหลดคำถาม...</div>
+      <button type="submit" class="btn block mt">ส่งแบบประเมิน</button>
+      <p class="error-text" id="err" style="display:none;"></p>
+    </form>
+  </main>
+
+  <script src="/js/nav.js"></script>
+  <script src="/js/api.js"></script>
+  <script>
+    const scaleLabels = ['ไม่จริงเลย', 'จริงเล็กน้อย', 'จริงปานกลาง', 'จริงมาก', 'จริงที่สุด'];
+    let questions = [];
+
+    async function loadQuestions() {
+      const { body } = await getJson('/api/survey/questions');
+      questions = body.questions || [];
+      const list = document.getElementById('questionList');
+      list.innerHTML = questions.map((q, i) => `
+        <div class="likert-q">
+          <div class="qtext">${i + 1}. ${q}</div>
+          <div class="likert" data-qindex="${i}">
+            ${[1,2,3,4,5].map(v => `
+              <label><input type="radio" name="q${i}" value="${v}"><span>${v}<br>${scaleLabels[v-1]}</span></label>
+            `).join('')}
+          </div>
+        </div>
+      `).join('');
+    }
+    loadQuestions();
+
+    document.getElementById('surveyForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const errEl = document.getElementById('err');
+      errEl.style.display = 'none';
+
+      const answers = [];
+      for (let i = 0; i < questions.length; i++) {
+        const el = document.querySelector(`input[name=q${i}]:checked`);
+        if (!el) { errEl.textContent = `กรุณาตอบข้อ ${i + 1}`; errEl.style.display = 'block'; return; }
+        answers.push(Number(el.value));
+      }
+
+      const { ok, body } = await postJson('/api/survey', {
+        name: document.getElementById('name').value,
+        no: document.getElementById('no').value,
+        class: document.getElementById('class').value,
+        studentId: document.getElementById('studentId').value,
+        answers,
+      });
+
+      if (ok) {
+        sessionStorage.setItem('surveyResult', JSON.stringify(body));
+        window.location.href = '/survey-result.html';
+      } else {
+        errEl.textContent = body.error || 'เกิดข้อผิดพลาด กรุณาลองใหม่';
+        errEl.style.display = 'block';
+      }
+    });
+  </script>
+</body>
+</html>
